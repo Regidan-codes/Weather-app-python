@@ -12,9 +12,27 @@ option = st.selectbox("Select data to view",
 st.subheader(f"{option} for the next {days} day(s) in {place}")
 
 
-# Get date and temperature/sky from openweather api
-d, t = get_data(place, days, option)
+# Get date and temperature/sky data from openweather api
+
 
 # Plot using plotly
-figure = px.line(x=d, y=t, labels={"x": "Date", "y": "Temperature (C)"})
-st.plotly_chart(figure)
+if place:
+    try:
+
+        filtered_data = get_data(place, days)
+        if option == 'Temperature':
+            temperatures = [i['main']['temp'] / 10 for i in filtered_data]
+            dates = [i['dt_txt'] for i in filtered_data]
+            figure = px.line(x=dates, y=temperatures, labels={"x": "Date", "y": "Temperature (C)"})
+            st.plotly_chart(figure)
+
+        if option == 'Sky':
+            images = {"Clear": "Images/clear.png", "Clouds": "Images/cloud.png",
+                      "Rain": "Images/rain.png", "Snow": "Images/snow.png"}
+            sky_conditions = [i['weather'][0]['main'] for i in filtered_data]
+            image_paths = [images[condition] for condition in sky_conditions]
+            st.image(image_paths, width=115)
+
+    except KeyError:
+
+        st.write("That place is not available. Please try again.")
